@@ -45,7 +45,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'テキストが長すぎます（最大1000文字）。' });
     }
     
-    const modelName = 'models/gemini-2.5-flash-lite-preview-06-17';
+    const modelName = 'gemini-2.5-flash-lite-preview-06-17';  // "models/"プレフィックスを削除
     
     // APIを呼び出すための共通ヘルパー関数
     const callApi = async (prompt) => {
@@ -62,6 +62,8 @@ export default async function handler(req, res) {
         };
         
         console.log('API URL:', url.replace(apiKey, 'API_KEY_HIDDEN'));
+        console.log('Model name:', modelName);
+        console.log('Payload preview:', JSON.stringify(payload).substring(0, 200) + '...');
         
         const response = await fetch(url, {
           method: 'POST',
