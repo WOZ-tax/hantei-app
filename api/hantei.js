@@ -1,5 +1,5 @@
 // /api/hantei.js
-import fetch from 'node-fetch';
+// node-fetchのimportを削除（Node.js 18+ではfetchがネイティブサポート）
 
 // テキストのエスケープ処理関数
 function escapeForPrompt(text) {
@@ -13,6 +13,12 @@ function escapeForPrompt(text) {
 
 // Vercelのサーバーレス関数のエントリーポイント
 export default async function handler(req, res) {
+  // CORSヘッダーの設定（必要に応じて）
+  res.setHeader('Content-Type', 'application/json');
+  
+  // 動的インポート（必要な場合のみ）
+  // const fetch = (await import('node-fetch')).default;
+  
   try {
     // POSTリクエスト以外は405エラーを返す
     if (req.method !== 'POST') {
@@ -26,7 +32,10 @@ export default async function handler(req, res) {
     }
 
     // リクエストボディから判定するテキストを取得
+    console.log('Request received:', new Date().toISOString());
     const { tweetText } = req.body;
+    console.log('Tweet text length:', tweetText?.length || 0);
+    
     if (!tweetText || typeof tweetText !== 'string' || tweetText.trim() === '') {
       return res.status(400).json({ error: '判定するテキストがありません。' });
     }
@@ -40,6 +49,7 @@ export default async function handler(req, res) {
     
     // APIを呼び出すための共通ヘルパー関数
     const callApi = async (prompt) => {
+      console.log('Calling Gemini API...');
       try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
         const payload = {
@@ -51,11 +61,15 @@ export default async function handler(req, res) {
           }
         };
         
+        console.log('API URL:', url.replace(apiKey, 'API_KEY_HIDDEN'));
+        
         const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
+        
+        console.log('API Response status:', response.status);
         
         if (!response.ok) {
           const errorText = await response.text();
